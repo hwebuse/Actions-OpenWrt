@@ -2,6 +2,12 @@ name: Build ImmortalWrt (master)
 
 on:
   workflow_dispatch:
+    inputs:
+      ssh:
+        description: 'Enable SSH for menuconfig'
+        required: false
+        default: 'false'
+
 
 env:
   REPO_URL: https://github.com/immortalwrt/immortalwrt
