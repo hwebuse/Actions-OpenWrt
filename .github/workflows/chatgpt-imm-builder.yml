@@ -60,7 +60,7 @@ jobs:
         fi
 
     - name: SSH for menuconfig
-      uses: P3TERX/ssh2actions@main
+      uses: mxschmitt/action-tmate@v3
       if: github.event.inputs.ssh == 'true'
 
     - name: Download packages
