@@ -1,0 +1,81 @@
+name: Build ImmortalWrt (master)
+
+on:
+  workflow_dispatch:
+    inputs:
+      ssh:
+        description: 'Enable SSH for menuconfig'
+        required: false
+        default: 'false'
+
+env:
+  REPO_URL: https://github.com/immortalwrt/immortalwrt
+  REPO_BRANCH: master
+  CONFIG_FILE: .config
+  TZ: Asia/Shanghai
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v4
+
+    - name: Init build environment
+      env:
+        DEBIAN_FRONTEND: noninteractive
+      run: |
+        sudo apt update
+        sudo apt install -y \
+          build-essential \
+          clang \
+          flex \
+          gawk \
+          gcc-multilib \
+          gettext \
+          git \
+          libncurses5-dev \
+          libssl-dev \
+          python3 \
+          rsync \
+          unzip \
+          zlib1g-dev
+        sudo timedatectl set-timezone "$TZ"
+
+    - name: Clone ImmortalWrt
+      run: |
+        git clone $REPO_URL -b $REPO_BRANCH openwrt
+
+    - name: Update & install feeds
+      run: |
+        cd openwrt
+        ./scripts/feeds update -a
+        ./scripts/feeds install -a
+
+    - name: Load .config if exists
+      run: |
+        if [ -f "$CONFIG_FILE" ]; then
+          cp $CONFIG_FILE openwrt/.config
+        fi
+
+    - name: SSH for menuconfig
+      uses: P3TERX/ssh2actions@main
+      if: github.event.inputs.ssh == 'true'
+
+    - name: Download packages
+      run: |
+        cd openwrt
+        make defconfig
+        make download -j8
+
+    - name: Compile firmware
+      run: |
+        cd openwrt
+        make -j$(nproc) || make -j1 V=s
+
+    - name: Upload firmware
+      uses: actions/upload-artifact@v4
+      with:
+        name: immortalwrt-firmware
+        path: openwrt/bin/targets
