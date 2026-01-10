@@ -67,9 +67,10 @@ jobs:
         cd openwrt
         ../$DIY_P2_SH
 
-    - name: SSH connection to Actions
-      uses: P3TERX/ssh2actions@main
+    - name: Setup SSH (tmate)
       if: github.event.inputs.ssh == 'true'
+      uses: mxschmitt/action-tmate@v3
+
 
 
     - name: Make defconfig
