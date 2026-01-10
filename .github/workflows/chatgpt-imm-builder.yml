@@ -1,4 +1,4 @@
-name: Build ImmortalWrt (master)
+name: Build ImmortalWrt (master) chatgpt
 
 on:
   workflow_dispatch:
